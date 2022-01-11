@@ -25,5 +25,8 @@
   },
   "dependencies": {
     "request-promise-native": "^1.0.9"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }

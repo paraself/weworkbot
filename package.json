@@ -1,0 +1,29 @@
+{
+  "name": "weworkbot",
+  "version": "1.0.0",
+  "description": "企业微信群聊机器人",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx tsc -p . -w",
+    "build": "npx tsc -p ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paraself/weworkbot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/paraself/weworkbot/issues"
+  },
+  "homepage": "https://github.com/paraself/weworkbot#readme",
+  "devDependencies": {
+    "@types/request-promise-native": "^1.0.18",
+    "source-map-support": "^0.5.21",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "request-promise-native": "^1.0.9"
+  }
+}

@@ -12,7 +12,7 @@ npm i weworkbot
 ```
 
 ### 使用
-```
+``` js
 import { WeWorkBot } from 'weworkbot'
 const { mdContent } = require('./content')
 

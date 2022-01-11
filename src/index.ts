@@ -29,7 +29,6 @@ export class WeWorkBot {
       body: msg,
     })) as Types.IMsgResult
     if (res.errcode !== 0 || res.errmsg !== 'ok') {
-      console.error('res: ', res)
       throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
     } else {
       return res
@@ -141,7 +140,6 @@ export class WeWorkBot {
       return res.media_id
     } else {
       const errmsg = `errcode: ${res.errcode}, errmsg: ${res.errmsg}`
-      console.error(errmsg)
       throw new Error(errmsg)
     }
   }

@@ -3,6 +3,9 @@
   "version": "1.0.3",
   "description": "企业微信群聊机器人",
   "main": "dist/index.js",
+  "keywords": [
+    "企业微信", "机器人", "群聊", "wework", "bot"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx tsc -p . -w",

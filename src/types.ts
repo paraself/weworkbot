@@ -62,7 +62,7 @@ export type IHorizontalContentList = {
   /** 二级文本，如果horizontal_content_list.type是2，该字段代表文件名称（要包含文件类型），建议不超过26个字 */
   value?: string
   /** 附件的media_id */
-  media_id?: 'MEDIAID'
+  media_id?: string
   /** 链接跳转的url，horizontal_content_list.type是1时必填 */
   url?: string
 }
@@ -77,14 +77,14 @@ export type IVerticalContentList = {
 export type IJumpList = {
   /** 1 跳转url；2跳转小程序 */
   type: 1 | 2
-  /** 跳转的标题 */
-  title: '跳转小程序'
+  /** 跳转的标题 - 跳转小程序*/
+  title: string
   /** 小程序的appid */
-  appid?: 'APPID'
+  appid?: string
   /** 小程序的page path */
-  pagepath?: 'PAGEPATH'
+  pagepath?: string
   /** 跳转的url */
-  url?: 'https://work.weixin.qq.com/?from=openApi'
+  url?: string
 }
 
 export interface ICardAction {
@@ -112,23 +112,29 @@ export interface IQuoteArea {
 
 export interface IEmphContent {
   /** 关键数据样式的数据内容，建议不超过10个字 */
-  title?: '100'
+  title?: string
   /** 关键数据样式的数据描述内容，建议不超过15个字 */
-  desc?: '数据含义'
+  desc?: string
 }
 
 export interface IMainTitle {
-  /** 一级标题，建议不超过26个字。模版卡片主要内容的一级标题main_title.title和二级普通文本sub_title_text必须有一项填写 */
-  title?: '欢迎使用企业微信'
-  /** 标题辅助信息，建议不超过30个字 */
-  desc?: '您的好友正在邀请您加入企业微信'
+  /** 
+   * 一级标题，建议不超过26个字。模版卡片主要内容的一级标题main_title.title和二级普通文本sub_title_text必须有一项填写 
+   * 例如：欢迎使用企业微信
+   * */
+  title?: string
+  /** 
+   * 标题辅助信息，建议不超过30个字 
+   * 例如：您的好友正在邀请您加入企业微信
+   * */
+  desc?: string
 }
 
 export interface ISource {
   /** 来源图片的url */
-  icon_url?: 'https://wework.qpic.cn/wwpic/252813_jOfDHtcISzuodLa_1629280209/0'
+  icon_url?: string
   /** 来源图片的描述，建议不超过13个字 */
-  desc?: '企业微信'
+  desc?: string
   /** 来源文字的颜色，目前支持：0(默认) 灰色，1 黑色，2 红色，3 绿色 */
   desc_color?: 0 | 1 | 2 | 3
 }

@@ -5,6 +5,15 @@ const BOT_URL_UPLOAD =
   'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media'
 import fs, { ReadStream } from 'fs'
 import { md5 } from './md5'
+import PQueue from 'p-queue';
+// https://developer.work.weixin.qq.com/document/path/91770#%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6
+// 企业微信规定：每个机器人发送的消息不能超过20条/分钟。
+// 这里我们设置一个队列，每隔3秒只能发送1次请求，这样能满足20条/分钟的要求
+const queue = new PQueue({
+  concurrency: 1,
+  interval: 3200,
+  intervalCap: 1
+});
 
 /**
  * 如何使用群机器人
@@ -19,20 +28,23 @@ export class WeWorkBot {
 
   /** 统一发送任意类型的消息 */
   async send(msg: Types.IMsg): Promise<Types.IMsgResult> {
-    const res = (await rpn({
-      uri: BOT_URL_WEBHOOK,
-      method: 'POST',
-      json: true,
-      qs: {
-        key: this.key,
-      },
-      body: msg,
-    })) as Types.IMsgResult
-    if (res.errcode !== 0 || res.errmsg !== 'ok') {
-      throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
-    } else {
-      return res
-    }
+    const task = await queue.add(async () => {
+      const res = (await rpn({
+        uri: BOT_URL_WEBHOOK,
+        method: 'POST',
+        json: true,
+        qs: {
+          key: this.key,
+        },
+        body: msg,
+      })) as Types.IMsgResult
+      if (res.errcode !== 0 || res.errmsg !== 'ok') {
+        throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
+      } else {
+        return res
+      }
+    })
+    return task
   }
 
   /** 发送文本消息 */
@@ -58,7 +70,6 @@ export class WeWorkBot {
     const buff = await fs.promises.readFile(filePath)
     const md5hash = md5(buff)
     const base64 = buff.toString('base64')
-    console.log(md5hash)
     return this.send({
       msgtype: 'image',
       image: {

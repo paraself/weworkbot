@@ -31,6 +31,7 @@
     "typescript": "^4.5.4"
   },
   "dependencies": {
+    "p-queue": "^6.6.2",
     "request-promise-native": "^1.0.9"
   },
   "publishConfig": {

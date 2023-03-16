@@ -11,6 +11,9 @@ https://developer.work.weixin.qq.com/document/path/91770
 npm i weworkbot
 ```
 
+### 注意
+因为企业微信限制了每个机器人最大以20条/分钟发送，所以集成了p-queue用来控制发送频率
+
 ### 使用
 ``` js
 import { WeWorkBot } from 'weworkbot'

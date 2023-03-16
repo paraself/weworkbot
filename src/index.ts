@@ -113,7 +113,9 @@ export class WeWorkBot {
   }
 
   /** 发送图文展示模版卡片 */
-  async sendCardNewsNotice(msg: Omit<Types.IMsgTemplateCardNewsNotice['template_card'], 'card_type'>) {
+  async sendCardNewsNotice(
+    msg: Omit<Types.IMsgTemplateCardNewsNotice['template_card'], 'card_type'>
+  ) {
     return this.send({
       msgtype: 'template_card',
       template_card: {

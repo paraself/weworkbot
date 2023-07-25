@@ -27,7 +27,7 @@ export class WeWorkBot {
   static setQueue(que: Queue, ENV_NAME?: string) {
     _internal_bull_queue = que
     if (!ENV_NAME || process.env.NODE_ENV === ENV_NAME) {
-      _internal_bull_queue.process(1, async job => {
+      _internal_bull_queue.process(async job => {
         const res = (await rpn({
           uri: BOT_URL_WEBHOOK,
           method: 'POST',
@@ -61,8 +61,11 @@ export class WeWorkBot {
         msg
       }, {
         attempts: 3,
+        backoff: {
+          type: 'fixed',
+          delay: 1000
+        },
         removeOnFail: 100,
-        delay: 3000
       })
       const res = await _job.finished()
       return res

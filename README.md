@@ -19,6 +19,10 @@ npm i weworkbot
 import { WeWorkBot } from 'weworkbot'
 const { mdContent } = require('./content')
 
+// 项目依赖bull队列来做限流，这里需要传入一个bull队列的实例，请自己实例化这个队列实例
+// 并保证将限流设置为limiter: { max: 1, duration: 3000 }
+WeWorkBot.setQueue(que)
+
 const bot = new WeWorkBot({
   key: 'xxxx',
 })

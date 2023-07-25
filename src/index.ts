@@ -62,6 +62,7 @@ export class WeWorkBot {
       }, {
         attempts: 3,
         removeOnFail: 100,
+        delay: 3000
       })
       const res = await _job.finished()
       return res

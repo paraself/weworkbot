@@ -1,6 +1,6 @@
 {
   "name": "weworkbot",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "企业微信群聊机器人",
   "main": "dist/index.js",
   "keywords": [

@@ -27,11 +27,11 @@
   "homepage": "https://github.com/paraself/weworkbot#readme",
   "devDependencies": {
     "@types/request-promise-native": "^1.0.18",
+    "bull": "^4.10.4",
     "source-map-support": "^0.5.21",
     "typescript": "^4.5.4"
   },
   "dependencies": {
-    "p-queue": "^6.6.2",
     "request-promise-native": "^1.0.9"
   },
   "publishConfig": {

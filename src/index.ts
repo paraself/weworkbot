@@ -5,15 +5,9 @@ const BOT_URL_UPLOAD =
   'https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media'
 import fs, { ReadStream } from 'fs'
 import { md5 } from './md5'
-import PQueue from 'p-queue';
-// https://developer.work.weixin.qq.com/document/path/91770#%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6
-// 企业微信规定：每个机器人发送的消息不能超过20条/分钟。
-// 这里我们设置一个队列，每隔3秒只能发送1次请求，这样能满足20条/分钟的要求
-const queue = new PQueue({
-  concurrency: 1,
-  interval: 3200,
-  intervalCap: 1
-});
+import type { Queue } from 'bull';
+
+let _internal_bull_queue: Queue | null = null
 
 /**
  * 如何使用群机器人
@@ -21,6 +15,37 @@ const queue = new PQueue({
  * 特别特别要注意：一定要保护好机器人的webhook地址，避免泄漏！不要分享到github、博客等可被公开查阅的地方，否则坏人就可以用你的机器人来发垃圾消息了。
  */
 export class WeWorkBot {
+
+  /**
+   * https://developer.work.weixin.qq.com/document/path/91770#%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6
+   * 企业微信规定：每个机器人发送的消息不能超过20条/分钟。
+   * 这里我们需要传入一个bull的队列，并且队列需要设置 limiter: { max: 1, duration: 3000 }
+   * 每隔3秒只能发送1次请求，这样能满足20条/分钟的要求
+   * @param que Bull的队列实例
+   * @param ENV_NAME 可选参数，如果传入的话，会检查当前的NODE_ENV环境变量和ENV_NAME是否相符，相符合的话，才会定义 process worker，这样可以让worker执行在指定的环境里
+   */
+  static setQueue(que: Queue, ENV_NAME?: string) {
+    _internal_bull_queue = que
+    if (!ENV_NAME || process.env.NODE_ENV === ENV_NAME) {
+      _internal_bull_queue.process(1, async job => {
+        const res = (await rpn({
+          uri: BOT_URL_WEBHOOK,
+          method: 'POST',
+          json: true,
+          qs: {
+            key: job.data.key,
+          },
+          body: job.data.msg,
+        })) as Types.IMsgResult
+        if (res.errcode !== 0 || res.errmsg !== 'ok') {
+          throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
+        } else {
+          return res
+        }
+      })
+    }
+  }
+
   private key: string
   constructor(params: { key: string }) {
     this.key = params.key
@@ -28,23 +53,20 @@ export class WeWorkBot {
 
   /** 统一发送任意类型的消息 */
   async send(msg: Types.IMsg): Promise<Types.IMsgResult> {
-    const task = await queue.add(async () => {
-      const res = (await rpn({
-        uri: BOT_URL_WEBHOOK,
-        method: 'POST',
-        json: true,
-        qs: {
-          key: this.key,
-        },
-        body: msg,
-      })) as Types.IMsgResult
-      if (res.errcode !== 0 || res.errmsg !== 'ok') {
-        throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
-      } else {
-        return res
-      }
-    })
-    return task
+    if (!_internal_bull_queue) {
+      throw new Error('Bull queue is not set, please call WeWorkBot.setQueue before sending msg')
+    } else {
+      const _job = await _internal_bull_queue.add({
+        key: this.key,
+        msg
+      }, {
+        attempts: 3,
+        removeOnFail: 100,
+      })
+      const res = await _job.finished()
+      return res
+    }
+
   }
 
   /** 发送文本消息 */

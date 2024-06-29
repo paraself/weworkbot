@@ -9,12 +9,34 @@ import type { Queue } from 'bull';
 
 let _internal_bull_queue: Queue | null = null
 
+async function _postMsg(key: string, msg: Types.IMsg): Promise<Types.IMsgResult> {
+  const res = (await rpn({
+    uri: BOT_URL_WEBHOOK,
+    method: 'POST',
+    json: true,
+    qs: {
+      key: key,
+    },
+    body: msg,
+  })) as Types.IMsgResult
+  if (res.errcode !== 0 || res.errmsg !== 'ok') {
+    throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
+  } else {
+    return res
+  }
+}
+
 /**
  * 如何使用群机器人
  * 在终端某个群组添加机器人之后，创建者可以在机器人详情页看的该机器人特有的webhookurl。开发者可以按以下说明a向这个地址发起HTTP POST 请求，即可实现给该群组发送消息。
  * 特别特别要注意：一定要保护好机器人的webhook地址，避免泄漏！不要分享到github、博客等可被公开查阅的地方，否则坏人就可以用你的机器人来发垃圾消息了。
  */
 export class WeWorkBot {
+
+  private key: string
+  constructor(params: { key: string }) {
+    this.key = params.key
+  }
 
   /**
    * https://developer.work.weixin.qq.com/document/path/91770#%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6
@@ -28,33 +50,17 @@ export class WeWorkBot {
     _internal_bull_queue = que
     if (!ENV_NAME || process.env.NODE_ENV === ENV_NAME) {
       _internal_bull_queue.process(async job => {
-        const res = (await rpn({
-          uri: BOT_URL_WEBHOOK,
-          method: 'POST',
-          json: true,
-          qs: {
-            key: job.data.key,
-          },
-          body: job.data.msg,
-        })) as Types.IMsgResult
-        if (res.errcode !== 0 || res.errmsg !== 'ok') {
-          throw new Error(`errcode: ${res.errcode}, errmsg: ${res.errmsg}`)
-        } else {
-          return res
-        }
+        const res = await _postMsg(job.data.key, job.data.msg)
+        return res
       })
     }
-  }
-
-  private key: string
-  constructor(params: { key: string }) {
-    this.key = params.key
   }
 
   /** 统一发送任意类型的消息 */
   async send(msg: Types.IMsg): Promise<Types.IMsgResult> {
     if (!_internal_bull_queue) {
-      throw new Error('Bull queue is not set, please call WeWorkBot.setQueue before sending msg')
+      // 如果没有设置队列的话，则直接发送，但是就有可能会被微信限流
+      return await _postMsg(this.key, msg)
     } else {
       const _job = await _internal_bull_queue.add({
         key: this.key,

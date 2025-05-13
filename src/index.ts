@@ -58,21 +58,15 @@ export class WeWorkBot {
 
   /** 统一发送任意类型的消息 */
   async send(msg: Types.IMsg): Promise<Types.IMsgResult> {
-    if (!_internal_bull_queue) {
-      // 如果没有设置队列的话，则直接发送，但是就有可能会被微信限流
+    if (!_internal_bull_queue || process.env.WEWORKBOT_NO_QUEUE) {
+      // 如果没有设置队列的话, 或者环境变量指定强制不走队列的话，则直接发送，但是就有可能会被微信限流
+      // WEWORKBOT_NO_QUEUE 主要用在，有的时候如果队列崩了，需要暂时不走队列，这样可以去处理队列的问题
       return await _postMsg(this.key, msg)
     } else {
       const _job = await _internal_bull_queue.add({
         key: this.key,
         msg
-      }, {
-        attempts: 3,
-        backoff: {
-          type: 'fixed',
-          delay: 1000
-        },
-        removeOnFail: 100,
-      })
+      }) // 任务设置由外部的queue的defaultJobOptions决定，这里不设置了
       const res = await _job.finished()
       return res
     }
